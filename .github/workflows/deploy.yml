@@ -20,7 +20,7 @@ jobs:
             set -e
 
             echo "Entering project..."
-            cd /var/www/production/your-laravel-app
+            cd /var/www/production/LumiEd-Be
 
             echo "Putting app in maintenance mode..."
             php artisan down || true
