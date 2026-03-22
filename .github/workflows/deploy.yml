@@ -44,7 +44,7 @@ jobs:
             php artisan route:cache
 
             echo "Fixing permissions..."
-            chown -R www-data:www-data storage bootstrap/cache
+            chown -R sonzie:www-data storage bootstrap/cache
             chmod -R 775 storage bootstrap/cache
 
             echo "Restarting queues (if any)..."
