@@ -12,9 +12,11 @@ use App\Http\Controllers\Api\StudentImportController;
 use App\Http\Controllers\Api\TeacherImportController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\UserProfileController;
+use App\Http\Controllers\Api\Auth\LoginLookupController;
 use App\Http\Middleware\ResolveSchool;
 
 Route::post('/schools/register', RegisterSchoolController::class);
+Route::post('/auth/lookup', LoginLookupController::class);
 
 Route::middleware([ResolveSchool::class])->prefix('schools/{school_slug}')->group(function () {
     Route::post('/login', LoginController::class);
