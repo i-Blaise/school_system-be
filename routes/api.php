@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\SchoolProfileController;
 use App\Http\Controllers\Api\StudentImportController;
 use App\Http\Controllers\Api\TeacherImportController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Middleware\ResolveSchool;
 
 Route::post('/schools/register', RegisterSchoolController::class);
@@ -19,6 +20,8 @@ Route::middleware([ResolveSchool::class])->prefix('schools/{school_slug}')->grou
 });
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/dashboard', DashboardController::class);
+
     Route::post('/logout', LogoutController::class);
     Route::get('/me', UserController::class);
 
