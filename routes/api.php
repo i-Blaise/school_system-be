@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\SchoolProfileController;
 use App\Http\Controllers\Api\StudentImportController;
 use App\Http\Controllers\Api\TeacherImportController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\UserProfileController;
 use App\Http\Middleware\ResolveSchool;
 
 Route::post('/schools/register', RegisterSchoolController::class);
@@ -24,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/logout', LogoutController::class);
     Route::get('/me', UserController::class);
+    Route::post('/me/profile', UserProfileController::class);
 
     Route::put('/school/profile', SchoolProfileController::class);
     Route::post('/students/import', StudentImportController::class);

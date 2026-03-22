@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\School;
 
-#[Fillable(['name', 'email', 'password', 'school_id', 'role'])]
+#[Fillable(['name', 'email', 'password', 'school_id', 'role', 'profile_picture'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
