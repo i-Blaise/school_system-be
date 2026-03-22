@@ -1,0 +1,57 @@
+name: Deploy Laravel API
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.IP_ADDRESS }}
+          username: root
+          key: ${{ secrets.PERSONAL_SERVER_SSH_KEY }}
+          script: |
+            set -e
+
+            echo "Entering project..."
+            cd /var/www/production/your-laravel-app
+
+            echo "Putting app in maintenance mode..."
+            php artisan down || true
+
+            echo "Updating code..."
+            git fetch origin
+            git reset --hard origin/main
+            git clean -fd
+
+            echo "Installing dependencies..."
+            composer install --no-dev --optimize-autoloader
+
+            echo "Running migrations..."
+            php artisan migrate --force
+
+            echo "Clearing caches..."
+            php artisan optimize:clear
+
+            echo "Rebuilding caches..."
+            php artisan config:cache
+            php artisan route:cache
+
+            echo "Fixing permissions..."
+            chown -R www-data:www-data storage bootstrap/cache
+            chmod -R 775 storage bootstrap/cache
+
+            echo "Restarting queues (if any)..."
+            php artisan queue:restart || true
+
+            echo "Bringing app back up..."
+            php artisan up
+
+            echo "Reloading Apache..."
+            sudo systemctl reload apache2
