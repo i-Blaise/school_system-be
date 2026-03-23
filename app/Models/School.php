@@ -20,4 +20,9 @@ class School extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function awards()
+    {
+        return $this->hasMany(\App\Models\SchoolAward::class);
+    }
 }
