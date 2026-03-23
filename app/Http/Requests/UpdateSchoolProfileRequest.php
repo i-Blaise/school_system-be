@@ -23,13 +23,12 @@ class UpdateSchoolProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'logo_url' => ['nullable', 'string', 'url'],
+            'school_name' => ['nullable', 'string', 'max:255'],
+            'logo' => ['nullable', 'image', 'max:2048'],
             'description' => ['nullable', 'string'],
             'awards' => ['nullable', 'array'],
             'awards.*' => ['string', 'max:255'],
-            'locations' => ['nullable', 'array'],
-            'locations.*.address' => ['required_with:locations', 'string'],
-            'locations.*.is_primary' => ['required_with:locations', 'boolean'],
+            'school_location' => ['nullable', 'string'],
         ];
     }
 }
