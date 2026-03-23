@@ -29,7 +29,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', UserController::class);
     Route::post('/me/profile', UserProfileController::class);
 
-    Route::put('/school/profile', SchoolProfileController::class);
+    Route::get('/school/profile', [SchoolProfileController::class, 'show']);
+    Route::put('/school/profile', [SchoolProfileController::class, 'update']);
     Route::post('/students/import', StudentImportController::class);
     Route::post('/teachers/import', TeacherImportController::class);
 });

@@ -9,10 +9,18 @@ use Illuminate\Support\Facades\DB;
 
 class SchoolProfileController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     */
-    public function __invoke(UpdateSchoolProfileRequest $request)
+    public function show(\Illuminate\Http\Request $request)
+    {
+        $school = $request->user()->school;
+
+        return response()->json([
+            'school_profile' => $school->profile,
+            'awards' => $school->awards,
+            'locations' => $school->locations,
+        ]);
+    }
+
+    public function update(UpdateSchoolProfileRequest $request)
     {
         $validated = $request->validated();
         $school = $request->user()->school;
