@@ -23,6 +23,11 @@ class School extends Model
 
     public function awards()
     {
-        return $this->hasMany(\App\Models\SchoolAward::class);
+        return $this->hasMany(SchoolAward::class);
+    }
+
+    public function locations()
+    {
+        return $this->hasMany(SchoolLocation::class);
     }
 }
