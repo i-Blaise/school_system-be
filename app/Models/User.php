@@ -38,4 +38,14 @@ class User extends Authenticatable
     {
         return $this->belongsTo(School::class);
     }
+
+    public function studentProfile()
+    {
+        return $this->hasOne(StudentProfile::class);
+    }
+
+    public function teacherProfile()
+    {
+        return $this->hasOne(TeacherProfile::class);
+    }
 }

@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 
 use App\Models\User;
 use App\Models\SchoolAward;
+use App\Models\StudentProfile;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -45,6 +47,11 @@ class DashboardController extends Controller
                 'boys'  => User::where('school_id', $schoolId)->where('role', 'student')->where('gender', 'male')->count(),
                 'girls' => User::where('school_id', $schoolId)->where('role', 'student')->where('gender', 'female')->count(),
             ],
+            'students_by_class' => StudentProfile::where('school_id', $schoolId)
+                ->select('class_name', DB::raw('count(*) as count'))
+                ->groupBy('class_name')
+                ->get()
+                ->pluck('count', 'class_name'),
             'student_performance' => [
                 'labels' => ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                 'datasets' => []
