@@ -10,6 +10,15 @@ use Illuminate\Support\Str;
 
 class LumiEdUsersSeeder extends Seeder
 {
+    private function randomName(): string
+    {
+        $firstNames = ['Ama', 'Kwame', 'Abena', 'Kofi', 'Efua', 'Yaw', 'Akua', 'Kojo', 'Adwoa', 'Kweku',
+                       'Naomi', 'James', 'Clara', 'David', 'Grace', 'Samuel', 'Esther', 'Michael', 'Linda', 'Peter'];
+        $lastNames  = ['Mensah', 'Boateng', 'Asante', 'Owusu', 'Darko', 'Tetteh', 'Bonsu', 'Acheampong', 'Appiah', 'Nyarko'];
+
+        return $firstNames[array_rand($firstNames)] . ' ' . $lastNames[array_rand($lastNames)];
+    }
+
     public function run(): void
     {
         $school = School::firstOrCreate(
@@ -25,7 +34,7 @@ class LumiEdUsersSeeder extends Seeder
             $students[] = [
                 'id'         => Str::orderedUuid(),
                 'school_id'  => $school->id,
-                'name'       => fake()->name(),
+                'name'       => $this->randomName(),
                 'email'      => "student{$i}@lumied.com",
                 'password'   => Hash::make('password'),
                 'role'       => 'student',
@@ -41,7 +50,7 @@ class LumiEdUsersSeeder extends Seeder
             $teachers[] = [
                 'id'         => Str::orderedUuid(),
                 'school_id'  => $school->id,
-                'name'       => fake()->name(),
+                'name'       => $this->randomName(),
                 'email'      => "teacher{$i}@lumied.com",
                 'password'   => Hash::make('password'),
                 'role'       => 'teacher',
@@ -51,6 +60,6 @@ class LumiEdUsersSeeder extends Seeder
         }
         User::insertOrIgnore($teachers);
 
-        $this->command->info('✅ Seeded: 100 students + 30 teachers into LumiEd SHS.');
+        $this->command->info('Seeded: 100 students + 30 teachers into LumiEd SHS.');
     }
 }
