@@ -25,6 +25,12 @@ class SchoolUsersSeeder extends Seeder
     {
         $this->command->info("Seeding into school ID: {$this->schoolId}");
 
+        // Wipe existing students and teachers for this school
+        $deleted = User::where('school_id', $this->schoolId)
+            ->whereIn('role', ['student', 'teacher'])
+            ->delete();
+        $this->command->info("Deleted {$deleted} existing students/teachers.");
+
         // 100 Students
         $students = [];
         for ($i = 1; $i <= 100; $i++) {
@@ -40,7 +46,7 @@ class SchoolUsersSeeder extends Seeder
                 'updated_at' => now(),
             ];
         }
-        User::insertOrIgnore($students);
+        User::insert($students);
         $this->command->info('Seeded 100 students.');
 
         // 30 Teachers
