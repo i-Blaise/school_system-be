@@ -10,7 +10,7 @@ class TeacherProfile extends Model
     use HasUuids;
 
     protected $fillable = [
-        'user_id', 'school_id', 'employee_id', 'qualification', 'subject_specialty',
+        'user_id', 'school_id', 'employee_id', 'qualification', 'subject_specialty', 'date_of_birth',
     ];
 
     public function user()

@@ -23,31 +23,66 @@ class SchoolUsersSeeder extends Seeder
         return $firstNames[array_rand($firstNames)] . ' ' . $lastNames[array_rand($lastNames)];
     }
 
-    private function randomClass(): string
+    private function randomClassInfo(): array
     {
         $classes = [
-            'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6',
-            'JHS 1', 'JHS 2', 'JHS 3',
+            ['name' => 'Class 1', 'age' => 6],
+            ['name' => 'Class 2', 'age' => 7],
+            ['name' => 'Class 3', 'age' => 8],
+            ['name' => 'Class 4', 'age' => 9],
+            ['name' => 'Class 5', 'age' => 10],
+            ['name' => 'Class 6', 'age' => 11],
+            ['name' => 'JHS 1', 'age' => 12],
+            ['name' => 'JHS 2', 'age' => 13],
+            ['name' => 'JHS 3', 'age' => 14],
         ];
 
         return $classes[array_rand($classes)];
     }
 
+    private function getDobFromAge(int $age): string
+    {
+        // Random month and day
+        $month = str_pad(mt_rand(1, 12), 2, '0', STR_PAD_LEFT);
+        $day = str_pad(mt_rand(1, 28), 2, '0', STR_PAD_LEFT);
+        $year = date('Y') - $age;
+
+        return "{$year}-{$month}-{$day}";
+    }
+
     public function run(): void
     {
-        $this->command->info("Seeding into school ID: {$this->schoolId}");
+        // Dynamically resolve school ID to support both local and production
+        $school = \App\Models\School::where('id', '019d2d9f-4135-73e1-873d-771335dc2d3f')->first()
+               ?? \App\Models\School::where('name', 'LIKE', '%LumiEd%')->first()
+               ?? \App\Models\School::first();
 
-        // Wipe existing students and teachers + their profiles for this school
-        $studentIds = User::where('school_id', $this->schoolId)->where('role', 'student')->pluck('id');
-        $teacherIds = User::where('school_id', $this->schoolId)->where('role', 'teacher')->pluck('id');
+        if (!$school) {
+            $this->command->error("No school found in the database. Please seed schools first.");
+            return;
+        }
 
-        StudentProfile::whereIn('user_id', $studentIds)->delete();
-        TeacherProfile::whereIn('user_id', $teacherIds)->delete();
+        $this->schoolId = $school->id;
+        $this->command->info("Seeding into school: {$school->name} ({$this->schoolId})");
 
-        $deleted = User::where('school_id', $this->schoolId)
-            ->whereIn('role', ['student', 'teacher'])
-            ->delete();
-        $this->command->info("Deleted {$deleted} existing students/teachers.");
+        // Wipe existing students and teachers globally by email pattern to avoid UniqueConstraintViolation
+        // across different school IDs if they were previously seeded.
+        $studentEmails = [];
+        for ($i = 1; $i <= 100; $i++) $studentEmails[] = "student{$i}@school-prod.com";
+        $teacherEmails = [];
+        for ($i = 1; $i <= 30; $i++) $teacherEmails[] = "teacher{$i}@school-prod.com";
+
+        $allSeededEmails = array_merge($studentEmails, $teacherEmails);
+
+        // Delete profiles first
+        $userIds = User::whereIn('email', $allSeededEmails)->pluck('id');
+        StudentProfile::whereIn('user_id', $userIds)->delete();
+        TeacherProfile::whereIn('user_id', $userIds)->delete();
+
+        // Delete users
+        $deleted = User::whereIn('email', $allSeededEmails)->delete();
+        
+        $this->command->info("Cleaned up {$deleted} existing entries.");
 
         // Random gender bias — male% is anywhere from 30% to 70% per run
         $maleBias = mt_rand(30, 70);
@@ -56,9 +91,13 @@ class SchoolUsersSeeder extends Seeder
 
         // ---- 100 Students ----
         $students = [];
+        $studentProfileData = [];
         for ($i = 1; $i <= 100; $i++) {
+            $userId = (string) Str::orderedUuid();
+            $classInfo = $this->randomClassInfo();
+            
             $students[] = [
-                'id'         => (string) Str::orderedUuid(),
+                'id'         => $userId,
                 'school_id'  => $this->schoolId,
                 'name'       => $this->randomName(),
                 'email'      => "student{$i}@school-prod.com",
@@ -68,50 +107,63 @@ class SchoolUsersSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
+
+            $studentProfileData[] = [
+                'id'         => (string) Str::orderedUuid(),
+                'user_id'    => $userId,
+                'school_id'  => $this->schoolId,
+                'class_name' => $classInfo['name'],
+                'date_of_birth' => $this->getDobFromAge($classInfo['age']),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
         }
-        User::insert($students);
+        // ---- 100 Students ----
+        for ($i = 1; $i <= 100; $i++) {
+            $userId = (string) Str::orderedUuid();
+            $classInfo = $this->randomClassInfo();
+            
+            User::create([
+                'id'         => $userId,
+                'school_id'  => $this->schoolId,
+                'name'       => $this->randomName(),
+                'email'      => "student{$i}@school-prod.com",
+                'password'   => Hash::make('password'),
+                'role'       => 'student',
+                'gender'     => $gender(),
+            ]);
 
-        // Create student_profiles with class_name
-        $studentProfiles = collect($students)->map(fn($s) => [
-            'id'         => (string) Str::orderedUuid(),
-            'user_id'    => $s['id'],
-            'school_id'  => $this->schoolId,
-            'class_name' => $this->randomClass(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ])->toArray();
-        StudentProfile::insert($studentProfiles);
-
-        $this->command->info('Seeded 100 students with profiles.');
+            StudentProfile::create([
+                'user_id'    => $userId,
+                'school_id'  => $this->schoolId,
+                'class_name' => $classInfo['name'],
+                'date_of_birth' => $this->getDobFromAge($classInfo['age']),
+            ]);
+        }
+        $this->command->info('Seeded 100 students with class-appropriate DOB.');
 
         // ---- 30 Teachers ----
-        $teachers = [];
         for ($i = 1; $i <= 30; $i++) {
-            $teachers[] = [
-                'id'         => (string) Str::orderedUuid(),
+            $userId = (string) Str::orderedUuid();
+            $age = mt_rand(25, 55);
+
+            User::create([
+                'id'         => $userId,
                 'school_id'  => $this->schoolId,
                 'name'       => $this->randomName(),
                 'email'      => "teacher{$i}@school-prod.com",
                 'password'   => Hash::make('password'),
                 'role'       => 'teacher',
                 'gender'     => $gender(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
+            ]);
+
+            TeacherProfile::create([
+                'user_id'    => $userId,
+                'school_id'  => $this->schoolId,
+                'date_of_birth' => $this->getDobFromAge($age),
+            ]);
         }
-        User::insert($teachers);
-
-        // Create teacher_profiles
-        $teacherProfiles = collect($teachers)->map(fn($t) => [
-            'id'         => (string) Str::orderedUuid(),
-            'user_id'    => $t['id'],
-            'school_id'  => $this->schoolId,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ])->toArray();
-        TeacherProfile::insert($teacherProfiles);
-
-        $this->command->info('Seeded 30 teachers with profiles.');
+        $this->command->info('Seeded 30 teachers with realistic DOB.');
         $this->command->info('Done: 100 students + 30 teachers seeded successfully.');
     }
 }
