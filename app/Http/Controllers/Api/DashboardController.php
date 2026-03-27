@@ -42,8 +42,8 @@ class DashboardController extends Controller
             ],
             'students_by_gender' => [
                 'total' => $enrolledStudents,
-                'boys' => 0,
-                'girls' => 0,
+                'boys'  => User::where('school_id', $schoolId)->where('role', 'student')->where('gender', 'male')->count(),
+                'girls' => User::where('school_id', $schoolId)->where('role', 'student')->where('gender', 'female')->count(),
             ],
             'student_performance' => [
                 'labels' => ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],

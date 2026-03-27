@@ -38,6 +38,7 @@ class LumiEdUsersSeeder extends Seeder
                 'email'      => "student{$i}@lumied.com",
                 'password'   => Hash::make('password'),
                 'role'       => 'student',
+                'gender'     => ['male', 'female'][array_rand(['male', 'female'])],
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
@@ -54,6 +55,7 @@ class LumiEdUsersSeeder extends Seeder
                 'email'      => "teacher{$i}@lumied.com",
                 'password'   => Hash::make('password'),
                 'role'       => 'teacher',
+                'gender'     => ['male', 'female'][array_rand(['male', 'female'])],
                 'created_at' => now(),
                 'updated_at' => now(),
             ];

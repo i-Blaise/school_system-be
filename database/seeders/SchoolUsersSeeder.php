@@ -35,6 +35,7 @@ class SchoolUsersSeeder extends Seeder
                 'email'      => "student{$i}@school-prod.com",
                 'password'   => Hash::make('password'),
                 'role'       => 'student',
+                'gender'     => ['male', 'female'][array_rand(['male', 'female'])],
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
@@ -52,6 +53,7 @@ class SchoolUsersSeeder extends Seeder
                 'email'      => "teacher{$i}@school-prod.com",
                 'password'   => Hash::make('password'),
                 'role'       => 'teacher',
+                'gender'     => ['male', 'female'][array_rand(['male', 'female'])],
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
