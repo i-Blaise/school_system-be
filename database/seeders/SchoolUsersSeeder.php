@@ -31,6 +31,11 @@ class SchoolUsersSeeder extends Seeder
             ->delete();
         $this->command->info("Deleted {$deleted} existing students/teachers.");
 
+        // Random gender bias — male% is anywhere from 30% to 70% per run
+        $maleBias = mt_rand(30, 70);
+        $gender = fn() => mt_rand(1, 100) <= $maleBias ? 'male' : 'female';
+        $this->command->info("Gender bias this run: {$maleBias}% male.");
+
         // 100 Students
         $students = [];
         for ($i = 1; $i <= 100; $i++) {
@@ -41,7 +46,7 @@ class SchoolUsersSeeder extends Seeder
                 'email'      => "student{$i}@school-prod.com",
                 'password'   => Hash::make('password'),
                 'role'       => 'student',
-                'gender'     => ['male', 'female'][array_rand(['male', 'female'])],
+                'gender'     => $gender(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
@@ -59,7 +64,7 @@ class SchoolUsersSeeder extends Seeder
                 'email'      => "teacher{$i}@school-prod.com",
                 'password'   => Hash::make('password'),
                 'role'       => 'teacher',
-                'gender'     => ['male', 'female'][array_rand(['male', 'female'])],
+                'gender'     => $gender(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
