@@ -171,6 +171,73 @@ class SchoolUsersSeeder extends Seeder
             ]);
         }
         $this->command->info('Seeded 30 teachers with realistic DOB, contacts, and socials.');
-        $this->command->info('Done: 100 students + 30 teachers seeded successfully.');
+
+        // ---- Generate 60 Days Historical Attendance ----
+        $this->command->info('Generating 60 days of fake attendance records...');
+
+        // Fetch all the users we just seeded
+        $seededUsers = User::whereIn('email', $allSeededEmails)->get();
+        
+        // Clean up previous attendances for these users to prevent unique constraint failures
+        \App\Models\Attendance::whereIn('user_id', $seededUsers->pluck('id'))->delete();
+
+        $attendanceBatch = [];
+        $now = now();
+        
+        foreach ($seededUsers as $user) {
+            // Loop backwards 60 days
+            for ($daysBack = 60; $daysBack >= 0; $daysBack--) {
+                $targetDate = clone $now;
+                $targetDate->subDays($daysBack);
+                
+                // Skip weekends naturally
+                if ($targetDate->isWeekend()) {
+                    continue;
+                }
+
+                // 10% chance of being absent (skip generating a record)
+                if (mt_rand(1, 100) <= 10) {
+                    continue;
+                }
+
+                // Generate random arrival (e.g., 6:30am to 8:30am)
+                $clockIn = clone $targetDate;
+                $clockIn->setTime(mt_rand(6, 8), mt_rand(0, 59));
+
+                // Generate random departure (e.g., 3:00pm to 5:00pm)
+                $clockOut = clone $targetDate;
+                $clockOut->setTime(mt_rand(15, 17), mt_rand(0, 59));
+
+                // About 5% of attendances should mock admin overrides for realism
+                $isAdminOverride = mt_rand(1, 100) <= 5;
+                
+                $attendanceBatch[] = [
+                    'id'                 => (string) Str::orderedUuid(),
+                    'user_id'            => $user->id,
+                    'school_id'          => $user->school_id,
+                    'date'               => $targetDate->format('Y-m-d'),
+                    'clock_in'           => $clockIn->toDateTimeString(),
+                    'clock_out'          => $clockOut->toDateTimeString(),
+                    'clock_in_method'    => $isAdminOverride ? 'admin_manual' : 'qr_scan',
+                    'clock_out_method'   => $isAdminOverride ? 'admin_manual' : 'qr_scan',
+                    'clocked_in_by'      => null, // Simulated
+                    'clocked_out_by'     => null, // Simulated
+                    'clock_in_location'  => json_encode(['lat' => 5.60 + (mt_rand(-100, 100)/10000), 'lng' => -0.18 + (mt_rand(-100, 100)/10000)]),
+                    'clock_out_location' => json_encode(['lat' => 5.60 + (mt_rand(-100, 100)/10000), 'lng' => -0.18 + (mt_rand(-100, 100)/10000)]),
+                    'admin_note'         => $isAdminOverride ? 'System glitch simulated override.' : null,
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
+                ];
+            }
+        }
+
+        // Insert in chunks of 500 to keep memory steady and inserts fast
+        $chunks = array_chunk($attendanceBatch, 500);
+        foreach ($chunks as $chunk) {
+            \App\Models\Attendance::insert($chunk);
+        }
+
+        $this->command->info('Inserted ' . count($attendanceBatch) . ' historical attendance records out of 60 days!');
+        $this->command->info('Done: 100 students + 30 teachers + full attendance seeded successfully.');
     }
 }
