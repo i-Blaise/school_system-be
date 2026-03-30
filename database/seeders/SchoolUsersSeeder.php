@@ -113,12 +113,23 @@ class SchoolUsersSeeder extends Seeder
         }
         $this->command->info('Seeded 100 students with class-appropriate DOB.');
 
+        // Prepare other schools for 60% distribution
+        $allSchoolIds = \App\Models\School::pluck('id')->toArray();
+        $otherSchoolIds = array_values(array_diff($allSchoolIds, [$this->schoolId]));
+
         // ---- 30 Teachers ----
         for ($i = 1; $i <= 30; $i++) {
             $userId = (string) Str::orderedUuid();
             $age = mt_rand(25, 55);
             $name = $this->randomName();
             $genderVal = $gender();
+
+            // 40% chance of target school, 60% chance for other schools
+            if (empty($otherSchoolIds) || mt_rand(1, 100) <= 40) {
+                $teacherSchoolId = $this->schoolId;
+            } else {
+                $teacherSchoolId = $otherSchoolIds[array_rand($otherSchoolIds)];
+            }
 
             // Random phone number generator (Ghana format for realism)
             $phone = '0' . mt_rand(20, 59) . str_pad(mt_rand(1000000, 9999999), 7, '0', STR_PAD_LEFT);
@@ -128,7 +139,7 @@ class SchoolUsersSeeder extends Seeder
 
             User::create([
                 'id'         => $userId,
-                'school_id'  => $this->schoolId,
+                'school_id'  => $teacherSchoolId,
                 'name'       => $name,
                 'email'      => "teacher{$i}@school-prod.com",
                 'password'   => Hash::make('password'),
@@ -146,7 +157,7 @@ class SchoolUsersSeeder extends Seeder
 
             TeacherProfile::create([
                 'user_id'    => $userId,
-                'school_id'  => $this->schoolId,
+                'school_id'  => $teacherSchoolId,
                 'date_of_birth' => $this->getDobFromAge($age),
                 'subject_specialty' => $subjectSpecialty,
                 'phone'      => $phone,
