@@ -90,35 +90,6 @@ class SchoolUsersSeeder extends Seeder
         $this->command->info("Gender bias this run: {$maleBias}% male.");
 
         // ---- 100 Students ----
-        $students = [];
-        $studentProfileData = [];
-        for ($i = 1; $i <= 100; $i++) {
-            $userId = (string) Str::orderedUuid();
-            $classInfo = $this->randomClassInfo();
-            
-            $students[] = [
-                'id'         => $userId,
-                'school_id'  => $this->schoolId,
-                'name'       => $this->randomName(),
-                'email'      => "student{$i}@school-prod.com",
-                'password'   => Hash::make('password'),
-                'role'       => 'student',
-                'gender'     => $gender(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-
-            $studentProfileData[] = [
-                'id'         => (string) Str::orderedUuid(),
-                'user_id'    => $userId,
-                'school_id'  => $this->schoolId,
-                'class_name' => $classInfo['name'],
-                'date_of_birth' => $this->getDobFromAge($classInfo['age']),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        }
-        // ---- 100 Students ----
         for ($i = 1; $i <= 100; $i++) {
             $userId = (string) Str::orderedUuid();
             $classInfo = $this->randomClassInfo();
@@ -146,24 +117,45 @@ class SchoolUsersSeeder extends Seeder
         for ($i = 1; $i <= 30; $i++) {
             $userId = (string) Str::orderedUuid();
             $age = mt_rand(25, 55);
+            $name = $this->randomName();
+            $genderVal = $gender();
+
+            // Random phone number generator (Ghana format for realism)
+            $phone = '0' . mt_rand(20, 59) . str_pad(mt_rand(1000000, 9999999), 7, '0', STR_PAD_LEFT);
+
+            // Simple profile picture from ui-avatars
+            $profilePicture = "https://ui-avatars.com/api/?name=" . urlencode($name) . "&color=7F9CF5&background=EBF4FF";
 
             User::create([
                 'id'         => $userId,
                 'school_id'  => $this->schoolId,
-                'name'       => $this->randomName(),
+                'name'       => $name,
                 'email'      => "teacher{$i}@school-prod.com",
                 'password'   => Hash::make('password'),
                 'role'       => 'teacher',
-                'gender'     => $gender(),
+                'gender'     => $genderVal,
+                'profile_picture' => $profilePicture,
             ]);
+
+            // Fake social handles
+            $handle = strtolower(str_replace(' ', '', $name)) . mt_rand(10, 99);
+
+            $subjects = ['Mathematics', 'English Language', 'Integrated Science', 'Social Studies', 'Physics', 'Chemistry', 'Biology', 'Economics', 'Geography', 'History', 'Information Technology', 'French'];
+            $randomSubjects = (array) array_rand(array_flip($subjects), mt_rand(1, 2));
+            $subjectSpecialty = implode(', ', $randomSubjects);
 
             TeacherProfile::create([
                 'user_id'    => $userId,
                 'school_id'  => $this->schoolId,
                 'date_of_birth' => $this->getDobFromAge($age),
+                'subject_specialty' => $subjectSpecialty,
+                'phone'      => $phone,
+                'twitter'    => "https://twitter.com/{$handle}",
+                'linkedin'   => "https://linkedin.com/in/{$handle}",
+                'facebook'   => "https://facebook.com/{$handle}",
             ]);
         }
-        $this->command->info('Seeded 30 teachers with realistic DOB.');
+        $this->command->info('Seeded 30 teachers with realistic DOB, contacts, and socials.');
         $this->command->info('Done: 100 students + 30 teachers seeded successfully.');
     }
 }

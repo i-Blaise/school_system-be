@@ -11,6 +11,7 @@ class TeacherProfile extends Model
 
     protected $fillable = [
         'user_id', 'school_id', 'employee_id', 'qualification', 'subject_specialty', 'date_of_birth',
+        'phone', 'twitter', 'linkedin', 'facebook',
     ];
 
     public function user()
