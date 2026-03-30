@@ -155,11 +155,15 @@ class SchoolUsersSeeder extends Seeder
             $randomSubjects = (array) array_rand(array_flip($subjects), mt_rand(1, 2));
             $subjectSpecialty = implode(', ', $randomSubjects);
 
+            $employmentStatuses = ['full-time', 'part-time', 'substitute'];
+            $employmentStatus = $employmentStatuses[array_rand($employmentStatuses)];
+
             TeacherProfile::create([
                 'user_id'    => $userId,
                 'school_id'  => $teacherSchoolId,
                 'date_of_birth' => $this->getDobFromAge($age),
                 'subject_specialty' => $subjectSpecialty,
+                'employment_status' => $employmentStatus,
                 'phone'      => $phone,
                 'twitter'    => "https://twitter.com/{$handle}",
                 'linkedin'   => "https://linkedin.com/in/{$handle}",

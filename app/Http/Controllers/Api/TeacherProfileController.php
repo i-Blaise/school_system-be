@@ -37,6 +37,7 @@ class TeacherProfileController extends Controller
                     'age' => $profile->date_of_birth ? Carbon::parse($profile->date_of_birth)->age : null,
                     'phone' => $profile->phone,
                     'subject_specialty' => $profile->subject_specialty,
+                    'employment_status' => $profile->employment_status,
                     'socials' => [
                         'twitter' => $profile->twitter,
                         'linkedin' => $profile->linkedin,
