@@ -37,4 +37,13 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Profiles
     Route::get('/profiles/teachers', [TeacherProfileController::class, 'index']);
+    
+    // Attendance
+    Route::get('/attendance/kiosk/token', [App\Http\Controllers\Api\AttendanceKioskController::class, 'generateToken']);
+    Route::post('/attendance/clock', [App\Http\Controllers\Api\AttendanceController::class, 'clock']);
+    Route::post('/attendance/admin/manual-clock', [App\Http\Controllers\Api\AttendanceController::class, 'adminClock']);
+
+    // Notifications
+    Route::get('/notifications', [App\Http\Controllers\Api\NotificationController::class, 'index']);
+    Route::post('/notifications/mark-read/{id?}', [App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
 });
