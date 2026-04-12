@@ -15,6 +15,11 @@ use App\Http\Controllers\Api\UserProfileController;
 use App\Http\Controllers\Api\Auth\LoginLookupController;
 use App\Http\Middleware\ResolveSchool;
 use App\Http\Controllers\Api\TeacherProfileController;
+use App\Http\Controllers\Api\AttendanceKioskController;
+use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\AttendanceReportController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\TeacherController;
 
 Route::post('/schools/register', RegisterSchoolController::class);
 Route::post('/auth/lookup', LoginLookupController::class);
@@ -35,16 +40,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/students/import', StudentImportController::class);
     Route::post('/teachers/import', TeacherImportController::class);
     
-    // Profiles
+    // Teachers (CRUD + drafts)
+    Route::post('/teachers', [TeacherController::class, 'store']);
+    Route::get('/teachers', [TeacherController::class, 'index']);
+    Route::get('/teachers/{id}', [TeacherController::class, 'show']);
+
+    // Profiles (legacy)
     Route::get('/profiles/teachers', [TeacherProfileController::class, 'index']);
     
     // Attendance
-    Route::get('/attendance/kiosk/token', [App\Http\Controllers\Api\AttendanceKioskController::class, 'generateToken']);
-    Route::post('/attendance/clock', [App\Http\Controllers\Api\AttendanceController::class, 'clock']);
-    Route::post('/attendance/admin/manual-clock', [App\Http\Controllers\Api\AttendanceController::class, 'adminClock']);
-    Route::get('/attendance/teachers/graphs', [App\Http\Controllers\Api\AttendanceReportController::class, 'teacherGraphs']);
+    Route::get('/attendance/kiosk/token', [AttendanceKioskController::class, 'generateToken']);
+    Route::post('/attendance/clock', [AttendanceController::class, 'clock']);
+    Route::post('/attendance/admin/manual-clock', [AttendanceController::class, 'adminClock']);
+    Route::get('/attendance/teachers/graphs', [AttendanceReportController::class, 'teacherGraphs']);
 
     // Notifications
-    Route::get('/notifications', [App\Http\Controllers\Api\NotificationController::class, 'index']);
-    Route::post('/notifications/mark-read/{id?}', [App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/mark-read/{id?}', [NotificationController::class, 'markAsRead']);
 });
