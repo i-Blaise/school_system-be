@@ -25,12 +25,13 @@ class TeacherProfile extends Model
         'address',
         'medical_condition_alert',
         'medical_condition_details',
-        'status',
+        'registration_status',
         'created_by',
         'twitter',
         'linkedin',
         'facebook',
         'employment_status',
+        'status',
     ];
 
     protected function casts(): array
@@ -67,6 +68,6 @@ class TeacherProfile extends Model
      */
     public function isDraft(): bool
     {
-        return $this->status === 'draft';
+        return $this->registration_status === 'draft';
     }
 }
