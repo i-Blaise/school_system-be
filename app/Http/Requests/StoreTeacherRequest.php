@@ -20,15 +20,18 @@ class StoreTeacherRequest extends FormRequest
      */
     public function rules(): array
     {
-        $isDraft = $this->input('status', 'active') === 'draft';
+        $isDraft = $this->input('registration_status', 'completed') === 'draft';
 
         // Draft mode: nearly everything is optional so the admin can save partial progress
         // Active mode: core fields are required to formally register the teacher
         $requiredIfActive = $isDraft ? 'nullable' : 'required';
 
         return [
-            // Status
-            'status'                => 'required|in:draft,active',
+            // Registration Status
+            'registration_status'   => 'required|in:draft,completed',
+
+            // Employment Status
+            'status'                => 'nullable|string|in:Active,Inactive,Leave',
 
             // Personal Information
             'full_name'             => "{$requiredIfActive}|string|max:255",

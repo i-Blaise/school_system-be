@@ -54,7 +54,8 @@ class DummyTeacherProfileSeeder extends Seeder
                 'address' => rand(10, 999) . ' Dummy Street, Simulation City',
                 'medical_condition_alert' => $medicalAlert,
                 'medical_condition_details' => $medicalAlert ? 'Requires periodic checkups.' : null,
-                'status' => 'published', // Move out of draft
+                'registration_status' => 'completed', // Move out of draft
+                'status' => 'Active', // The HR employment state
                 'created_by' => $teacher->id,
                 'twitter' => 'teacher_' . Str::random(5),
                 'linkedin' => 'teacher_' . Str::random(5),
@@ -73,12 +74,12 @@ class DummyTeacherProfileSeeder extends Seeder
                 
                 $updateData = [];
                 foreach ($profileData as $key => $value) {
-                    if (is_null($profile->$key) || $profile->$key === '' || $key === 'status') {
+                    if (is_null($profile->$key) || $profile->$key === '' || $key === 'registration_status' || $key === 'status') {
                         $updateData[$key] = $value;
                     }
                 }
                 // Specifically update status to active/published just for testing UI
-                $updateData['status'] = 'active'; 
+                $updateData['registration_status'] = 'completed'; 
                 $profile->update($updateData);
                 $countUpdated++;
             }

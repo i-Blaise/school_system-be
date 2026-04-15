@@ -21,7 +21,7 @@ class TeacherController extends Controller
         $validated = $request->validated();
         $admin = $request->user();
         $schoolId = $admin->school_id;
-        $isDraft = $validated['status'] === 'draft';
+        $isDraft = $validated['registration_status'] === 'draft';
 
         return DB::transaction(function () use ($validated, $admin, $schoolId, $isDraft) {
 
@@ -63,7 +63,8 @@ class TeacherController extends Controller
                 'address'                => $validated['address'] ?? null,
                 'medical_condition_alert'   => $validated['medical_condition_alert'] ?? false,
                 'medical_condition_details' => $validated['medical_condition_details'] ?? null,
-                'status'                 => $isDraft ? 'draft' : 'active',
+                'registration_status'    => $isDraft ? 'draft' : 'completed',
+                'status'                 => $validated['status'] ?? 'Active',
                 'created_by'             => $admin->id,
             ]);
 
@@ -98,11 +99,16 @@ class TeacherController extends Controller
     public function index(\Illuminate\Http\Request $request)
     {
         $schoolId = $request->user()->school_id;
-        $status = $request->query('status'); // ?status=draft or ?status=active
+        $registrationStatus = $request->query('registration_status'); // ?registration_status=draft or completed
+        $status = $request->query('status'); // ?status=Active, Inactive, Leave
 
         $query = TeacherProfile::where('school_id', $schoolId)
             ->with(['user', 'emergencyContacts']);
 
+        if ($registrationStatus) {
+            $query->where('registration_status', $registrationStatus);
+        }
+        
         if ($status) {
             $query->where('status', $status);
         }
@@ -175,6 +181,7 @@ class TeacherController extends Controller
             'id'                     => $profile->id,
             'teacher_id'             => $profile->teacher_id,
             'employee_id'            => $profile->employee_id,
+            'registration_status'    => $profile->registration_status,
             'status'                 => $profile->status,
 
             // Personal info
@@ -224,7 +231,7 @@ class TeacherController extends Controller
         $validated = $request->validated();
         $admin = $request->user();
         $schoolId = $admin->school_id;
-        $isDraft = $validated['status'] === 'draft';
+        $isDraft = $validated['registration_status'] === 'draft';
 
         $profile = TeacherProfile::where('school_id', $schoolId)
             ->with(['user', 'emergencyContacts'])
@@ -261,7 +268,8 @@ class TeacherController extends Controller
                 'address'                => $validated['address'] ?? $profile->address,
                 'medical_condition_alert'   => $validated['medical_condition_alert'] ?? $profile->medical_condition_alert,
                 'medical_condition_details' => $validated['medical_condition_details'] ?? $profile->medical_condition_details,
-                'status'                 => $isDraft ? 'draft' : 'active',
+                'registration_status'    => $isDraft ? 'draft' : 'completed',
+                'status'                 => $validated['status'] ?? $profile->status,
             ]);
 
             // --- 4. Emergency contact update ---
