@@ -132,7 +132,11 @@ class TeacherController extends Controller
 
         $profile = TeacherProfile::where('school_id', $schoolId)
             ->with(['user', 'emergencyContacts'])
-            ->findOrFail($id);
+            ->where(function($query) use ($id) {
+                $query->where('id', $id)
+                      ->orWhere('user_id', $id);
+            })
+            ->firstOrFail();
 
         return response()->json([
             'success' => true,
@@ -235,7 +239,11 @@ class TeacherController extends Controller
 
         $profile = TeacherProfile::where('school_id', $schoolId)
             ->with(['user', 'emergencyContacts'])
-            ->findOrFail($id);
+            ->where(function($query) use ($id) {
+                $query->where('id', $id)
+                      ->orWhere('user_id', $id);
+            })
+            ->firstOrFail();
 
         return DB::transaction(function () use ($validated, $admin, $schoolId, $isDraft, $profile) {
 
