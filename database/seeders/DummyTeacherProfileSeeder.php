@@ -6,8 +6,8 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\TeacherProfile;
 use App\Models\TeacherEmergencyContact;
-use Faker\Factory as Faker;
 use Illuminate\Support\Str;
+use Illuminate\Support\Arr;
 
 class DummyTeacherProfileSeeder extends Seeder
 {
@@ -16,8 +16,6 @@ class DummyTeacherProfileSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = Faker::create();
-
         // Get all users who are teachers
         $teachers = User::whereIn('role', ['teacher', 'Teacher'])->get();
 
@@ -31,35 +29,37 @@ class DummyTeacherProfileSeeder extends Seeder
         $qualifications = ['B.Ed', 'M.Ed', 'B.Sc', 'M.Sc', 'BA', 'MA', 'Ph.D'];
         $employmentStatuses = ['Full Time', 'Part Time', 'Contract'];
         $relations = ['Spouse', 'Parent', 'Sibling', 'Friend', 'Child', 'Emergency'];
+        $specialties = ['Physics', 'Algebra', 'English', 'History', 'Biology', 'Chemistry'];
+        $dummyNames = ['John Doe', 'Jane Smith', 'Bob Johnson', 'Alice Williams', 'Charlie Brown', 'Eva Green'];
 
         $countNew = 0;
         $countUpdated = 0;
 
-        foreach ($teachers as $teacher) {
-            $medicalAlert = $faker->boolean(20); // 20% chance of true
+        foreach ($teachers as $index => $teacher) {
+            $medicalAlert = rand(1, 100) <= 20; // 20% chance of true
             
             $profileData = [
                 'school_id' => $teacher->school_id,
                 'teacher_id' => 'TCH-' . strtoupper(Str::random(6)),
-                'employee_id' => 'EMP-' . $faker->unique()->numerify('####'),
-                'department' => $faker->randomElement($departments),
-                'designation' => $faker->randomElement($designations),
-                'joining_date' => $faker->dateTimeBetween('-5 years', 'now')->format('Y-m-d'),
-                'qualification' => $faker->randomElement($qualifications),
+                'employee_id' => 'EMP-' . str_pad($index + 1000, 4, '0', STR_PAD_LEFT),
+                'department' => Arr::random($departments),
+                'designation' => Arr::random($designations),
+                'joining_date' => date('Y-m-d', strtotime('-' . rand(0, 1800) . ' days')),
+                'qualification' => Arr::random($qualifications),
                 // Only overwrite these if they are empty
-                'subject_specialty' => $faker->word(),
-                'date_of_birth' => $faker->dateTimeBetween('-60 years', '-25 years')->format('Y-m-d'),
-                'phone' => $faker->numerify('##########'), 
+                'subject_specialty' => Arr::random($specialties),
+                'date_of_birth' => date('Y-m-d', strtotime('-' . rand(25 * 365, 60 * 365) . ' days')),
+                'phone' => str_pad(rand(1000000000, 9999999999), 10, '0', STR_PAD_LEFT), 
                 'phone_country_code' => '+1', 
-                'address' => $faker->address(),
+                'address' => rand(10, 999) . ' Dummy Street, Simulation City',
                 'medical_condition_alert' => $medicalAlert,
-                'medical_condition_details' => $medicalAlert ? $faker->sentence() : null,
+                'medical_condition_details' => $medicalAlert ? 'Requires periodic checkups.' : null,
                 'status' => 'published', // Move out of draft
                 'created_by' => $teacher->id,
-                'twitter' => $faker->userName(),
-                'linkedin' => $faker->userName(),
-                'facebook' => $faker->userName(),
-                'employment_status' => $faker->randomElement($employmentStatuses),
+                'twitter' => 'teacher_' . Str::random(5),
+                'linkedin' => 'teacher_' . Str::random(5),
+                'facebook' => 'teacher_' . Str::random(5),
+                'employment_status' => Arr::random($employmentStatuses),
             ];
 
             if (!$teacher->teacherProfile) {
@@ -85,14 +85,14 @@ class DummyTeacherProfileSeeder extends Seeder
 
             // Create 1 or 2 emergency contacts if they don't have any
             if ($profile->emergencyContacts()->count() === 0) {
-                $contactCount = $faker->numberBetween(1, 2);
+                $contactCount = rand(1, 2);
                 for ($i = 0; $i < $contactCount; $i++) {
                     TeacherEmergencyContact::create([
                         'teacher_profile_id' => $profile->id,
-                        'name' => $faker->name(),
-                        'relation' => $faker->randomElement($relations),
+                        'name' => Arr::random($dummyNames),
+                        'relation' => Arr::random($relations),
                         'phone_country_code' => '+1',
-                        'phone' => $faker->numerify('##########'),
+                        'phone' => str_pad(rand(1000000000, 9999999999), 10, '0', STR_PAD_LEFT),
                     ]);
                 }
             }
