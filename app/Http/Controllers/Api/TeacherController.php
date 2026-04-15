@@ -213,4 +213,80 @@ class TeacherController extends Controller
             'updated_at'             => $profile->updated_at,
         ];
     }
+
+    /**
+     * Update an existing teacher.
+     *
+     * PUT /api/teachers/{id}
+     */
+    public function update(\App\Http\Requests\StoreTeacherRequest $request, string $id)
+    {
+        $validated = $request->validated();
+        $admin = $request->user();
+        $schoolId = $admin->school_id;
+        $isDraft = $validated['status'] === 'draft';
+
+        $profile = TeacherProfile::where('school_id', $schoolId)
+            ->with(['user', 'emergencyContacts'])
+            ->findOrFail($id);
+
+        return DB::transaction(function () use ($validated, $admin, $schoolId, $isDraft, $profile) {
+
+            // --- 1. Update the User record ---
+            $user = $profile->user;
+            if ($user) {
+                $user->update([
+                    'name'   => $validated['full_name'] ?? $user->name,
+                    'email'  => $validated['email'] ?? $user->email,
+                    'gender' => $validated['gender'] ?? $user->gender,
+                ]);
+
+                // --- 2. Handle profile photo update ---
+                if (isset($validated['profile_photo'])) {
+                    $profilePhotoPath = $validated['profile_photo']->store('profile_photos', 'public');
+                    $user->update(['profile_picture' => $profilePhotoPath]);
+                }
+            }
+
+            // --- 3. Update the Teacher Profile ---
+            $profile->update([
+                'department'             => $validated['department'] ?? $profile->department,
+                'designation'            => $validated['designation'] ?? $profile->designation,
+                'joining_date'           => $validated['joining_date'] ?? $profile->joining_date,
+                'qualification'          => $validated['qualification'] ?? $profile->qualification,
+                'subject_specialty'      => $validated['specialization'] ?? $profile->subject_specialty,
+                'date_of_birth'          => $validated['date_of_birth'] ?? $profile->date_of_birth,
+                'phone'                  => $validated['phone'] ?? $profile->phone,
+                'phone_country_code'     => $validated['phone_country_code'] ?? $profile->phone_country_code,
+                'address'                => $validated['address'] ?? $profile->address,
+                'medical_condition_alert'   => $validated['medical_condition_alert'] ?? $profile->medical_condition_alert,
+                'medical_condition_details' => $validated['medical_condition_details'] ?? $profile->medical_condition_details,
+                'status'                 => $isDraft ? 'draft' : 'active',
+            ]);
+
+            // --- 4. Emergency contact update ---
+            if (!empty($validated['emergency_contact']['name'])) {
+                $emergencyContactData = [
+                    'name'               => $validated['emergency_contact']['name'],
+                    'relation'           => $validated['emergency_contact']['relation'] ?? null,
+                    'phone_country_code' => $validated['emergency_contact']['phone_country_code'] ?? '+233',
+                    'phone'              => $validated['emergency_contact']['phone'] ?? null,
+                ];
+
+                if ($profile->emergencyContacts()->exists()) {
+                    $profile->emergencyContacts()->first()->update($emergencyContactData);
+                } else {
+                    $profile->emergencyContacts()->create($emergencyContactData);
+                }
+            }
+
+            $profile->load(['user', 'emergencyContacts']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Teacher updated successfully.',
+                'data' => $this->formatTeacherResponse($profile),
+            ], 200);
+        });
+    }
 }
